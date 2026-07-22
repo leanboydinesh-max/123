@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday Surprise!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b071a;
+            color: #ffffff;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Canvas background for stars & confetti */
+        #bgCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Screen Containers */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: scale(0.95);
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        /* Typography & Visual Accents */
+        .neon-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ff3385;
+            text-shadow: 0 0 10px #ff3385, 0 0 20px #ff3385, 0 0 30px #ff0055;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .gold-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 12px #ffae00, 0 0 25px #ff8800;
+            margin-bottom: 15px;
+            letter-spacing: 1.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #e0d5ff;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            line-height: 1.5;
+            max-width: 320px;
+        }
+
+        .glowing-heart {
+            font-size: 80px;
+            color: #ff2a75;
+            text-shadow: 0 0 15px #ff2a75, 0 0 35px #ff0055;
+            animation: pulse 1.5s infinite ease-in-out;
+            margin: 30px 0;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .instruction-tap {
+            font-size: 1rem;
+            color: #bfa8ff;
+            animation: bounce 1.8s infinite;
+            margin-top: 15px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Buttons */
+        .btn-action {
+            background: linear-gradient(45deg, #ff007f, #7928ca);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            margin-top: 15px;
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        /* Cake & Candles Container */
+        .cake-container {
+            position: relative;
+            width: 250px;
+            height: 220px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+
+        .cake-body {
+            position: absolute;
+            bottom: 0;
+            width: 200px;
+            height: 120px;
+            background: linear-gradient(to bottom, #7a3e2a, #4a2318);
+            border-radius: 15px 15px 10px 10px;
+            left: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border-top: 12px solid #ff99bb;
+        }
+
+        .cake-layer-2 {
+            position: absolute;
+            bottom: 60px;
+            width: 160px;
+            height: 70px;
+            background: linear-gradient(to bottom, #944d35, #5c2b1d);
+            border-radius: 12px;
+            left: 45px;
+            border-top: 10px solid #fff0f5;
+        }
+
+        .cake-icing {
+            position: absolute;
+            bottom: 120px;
+            width: 160px;
+            height: 20px;
+            left: 45px;
+            background: #ff6699;
+            border-radius: 10px 10px 5px 5px;
+        }
+
+        /* Candles */
+        .candles-row {
+            position: absolute;
+            bottom: 140px;
+            width: 160px;
+            left: 45px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .candle {
+            width: 12px;
+            height: 45px;
+            background: repeating-linear-gradient(45deg, #ffd700, #ffd700 5px, #ff4500 5px, #ff4500 10px);
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .flame {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 18px;
+            background: radial-gradient(ellipse at bottom, #ffff00, #ff4500);
+            border-radius: 50% 50% 35% 35%;
+            box-shadow: 0 0 10px #ff4500, 0 0 20px #ffff00;
+            animation: flicker 0.6s infinite alternate;
+            transition: opacity 0.5s ease;
+        }
+
+        .flame.off {
+            opacity: 0;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
+            100% { transform: translateX(-50%) scale(1.15) rotate(2deg); }
+        }
+
+        /* Cake Cutting Swipe Overlay */
+        .cut-line {
+            position: absolute;
+            top: 50%;
+            left: -10%;
+            width: 120%;
+            height: 4px;
+            background: #00ffff;
+            box-shadow: 0 0 15px #00ffff;
+            transform: rotate(-15deg) scaleX(0);
+            transition: transform 0.4s ease;
+            pointer-events: none;
+        }
+
+        .cut-line.active {
+            transform: rotate(-15deg) scaleX(1);
+        }
+
+        /* Gift Box */
+        .gift-box {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #ff0055, #cc0044);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.6);
+            margin: 30px auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.05);
+        }
+
+        .gift-ribbon-v {
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background: #ffd700;
+            left: 60px;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .gift-ribbon-h {
+            position: absolute;
+            height: 30px;
+            width: 100%;
+            background: #ffd700;
+            top: 60px;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .gift-bow {
+            position: absolute;
+            top: -25px;
+            left: 45px;
+            width: 60px;
+            height: 30px;
+            background: #ffd700;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 0 12px #ffd700;
+        }
+
+        /* Birthday Card Envelope */
+        .envelope-container {
+            position: relative;
+            width: 280px;
+            height: 200px;
+            background: #ff3377;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .envelope-card {
+            width: 250px;
+            height: 160px;
+            background: #fff;
+            color: #ff0055;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .envelope-card h3 {
+            font-size: 1.6rem;
+            font-family: 'Georgia', serif;
+            margin-bottom: 5px;
+        }
+
+        /* Photo Frame */
+        .photo-frame {
+            width: 220px;
+            height: 220px;
+            background: #ffffff;
+            padding: 12px 12px 35px 12px;
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            transform: rotate(-3deg);
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .photo-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1d0e3a, #4a154b);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffd700;
+            font-size: 3rem;
+        }
+
+        /* Toast / Notification Pop-up */
+        .notification-toast {
+            position: fixed;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: #111;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(255, 0, 128, 0.4);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            transition: top 0.5s ease;
+        }
+
+        .notification-toast.show {
+            top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Canvas for Stars & Confetti -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Popup Notification -->
+    <div id="toast" class="notification-toast">
+        <span style="font-size: 1.4rem;">🎉</span>
+        <span id="toast-text">Happy Birthday! 🎈</span>
+    </div>
+
+    <!-- SCREEN 1: OPENING PAGE -->
+    <div id="screen1" class="screen active">
+        <div class="neon-title">Something<br><span style="color:#fff;">Special</span><br>For You!</div>
+        <div class="glowing-heart" onclick="goToScreen(2)">💖</div>
+        <p class="subtitle">Tap anywhere to open your surprise!</p>
+        <div class="instruction-tap">👇 Click to View</div>
+    </div>
+
+    <!-- SCREEN 2: CAKE & CANDLES -->
+    <div id="screen2" class="screen">
+        <div class="gold-title">HAPPY BIRTHDAY!</div>
+        <p id="cake-instruction" class="subtitle" style="color: #ff99cc;">
+            👇 Click candles to blow them out!
+        </p>
+        
+        <div class="cake-container" id="cake" onclick="handleCakeInteraction()">
+            <div class="candles-row">
+                <div class="candle"><div class="flame" id="flame1"></div></div>
+                <div class="candle"><div class="flame" id="flame2"></div></div>
+                <div class="candle"><div class="flame" id="flame3"></div></div>
+                <div class="candle"><div class="flame" id="flame4"></div></div>
+            </div>
+            <div class="cake-icing"></div>
+            <div class="cake-layer-2"></div>
+            <div class="cake-body"></div>
+            <div id="cutLine" class="cut-line"></div>
+        </div>
+
+        <p class="subtitle">Wishing you a day filled with happiness and joy! 💕</p>
+        <button id="cakeNextBtn" class="btn-action" style="display:none;" onclick="goToScreen(3)">Next Surprise 🎁</button>
+    </div>
+
+    <!-- SCREEN 3: GIFT BOX -->
+    <div id="screen3" class="screen">
+        <div class="gold-title">You've got a<br>SURPRISE! 🎁</div>
+        
+        <div class="gift-box" onclick="openGift()">
+            <div class="gift-bow"></div>
+            <div class="gift-ribbon-v"></div>
+            <div class="gift-ribbon-h"></div>
+        </div>
+
+        <p class="subtitle">Tap the gift box to open!</p>
+    </div>
+
+    <!-- SCREEN 4: BIRTHDAY CARD -->
+    <div id="screen4" class="screen">
+        <div class="neon-title" style="font-size: 1.8rem;">A Card For You ✉️</div>
+        
+        <div class="envelope-container" onclick="goToScreen(5)">
+            <div class="envelope-card">
+                <h3>Happy Birthday!</h3>
+                <p style="color: #ff3377; font-size: 1.5rem;">🌸🌹🌸</p>
+                <p style="font-size: 0.85rem; color: #666; margin-top: 8px;">Tap to read your message</p>
+            </div>
+        </div>
+
+        <p class="subtitle">Hope your special day brings you all that your heart desires! 💕</p>
+    </div>
+
+    <!-- SCREEN 5: SPECIAL MESSAGE -->
+    <div id="screen5" class="screen">
+        <div class="gold-title" style="font-size: 1.8rem; color: #ffb3d9;">Dear Friend, ✨</div>
+        <p class="subtitle" style="max-width: 320px; line-height: 1.7; font-size: 1rem;">
+            Congratulations & Thank you for opening! 🥳<br><br>
+            On your special day, I just want to say how grateful I am to have you in my life.<br><br>
+            You are an amazing person with a kind heart and a wonderful soul. May this year bring you endless happiness, good health, and success! 🌟
+        </p>
+        <button class="btn-action" onclick="goToScreen(6)">Final Wish 👑</button>
+    </div>
+
+    <!-- SCREEN 6: FINAL WISHES -->
+    <div id="screen6" class="screen">
+        <div class="neon-title">Stay Happy Always! 👑</div>
+        
+        <div class="photo-frame">
+            <div class="photo-placeholder">🥳</div>
+            <p style="color: #333; font-weight: bold; margin-top: 8px; font-size: 0.9rem;">Best Memories</p>
+        </div>
+
+        <p class="subtitle" style="font-size: 0.95rem;">
+            Thank you for being such a great friend!<br>
+            Enjoy your day to the fullest! 🎉
+        </p>
+        
+        <button class="btn-action" onclick="triggerMassiveConfetti()">Make a Wish 🌟</button>
+    </div>
+
+    <script>
+        // Global State & Flow Control
+        let currentScreen = 1;
+        let candlesBlown = false;
+        let cakeCut = false;
+
+        function goToScreen(screenNum) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen${screenNum}`).classList.add('active');
+            currentScreen = screenNum;
+
+            if (screenNum === 2) {
+                showToast("🎂 Tap candles to blow them out!");
+            } else if (screenNum === 3) {
+                showToast("🎁 Tap to open your gift!");
+            } else if (screenNum === 5) {
+                showToast("💌 Special Birthday Wishes!");
+            } else if (screenNum === 6) {
+                showToast("👑 Stay Happy Always!");
+            }
+        }
+
+        // Screen 1 tap listener
+        document.getElementById('screen1').addEventListener('click', function() {
+            goToScreen(2);
+        });
+
+        // Cake Interactions
+        function handleCakeInteraction() {
+            if (!candlesBlown) {
+                // Blow out candles
+                document.querySelectorAll('.flame').forEach(f => f.classList.add('off'));
+                candlesBlown = true;
+                showToast("✨ Yay! Now swipe/tap to cut the cake!");
+                document.getElementById('cake-instruction').innerText = "✂️ Now tap to cut the cake!";
+            } else if (!cakeCut) {
+                // Cut cake
+                document.getElementById('cutLine').classList.add('active');
+                cakeCut = true;
+                showToast("🎉 Cake Cut! Congratulations!");
+                document.getElementById('cakeNextBtn').style.display = "inline-block";
+                triggerConfetti();
+            }
+        }
+
+        // Open Gift Box
+        function openGift() {
+            triggerConfetti();
+            showToast("🎁 Birthday Surprise Unlocked!");
+            setTimeout(() => {
+                goToScreen(4);
+            }, 800);
+        }
+
+        // Toast Notification Function
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Canvas Star & Particle Animations
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let confetti = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Create Ambient Stars
+        for (let i = 0; i < 70; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 2 + 1,
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.005
+            });
+        }
+
+        function triggerConfetti() {
+            const colors = ['#ff0055', '#ffd700', '#00ffff', '#ff99bb', '#00ff66', '#a64dff'];
+            for (let i = 0; i < 80; i++) {
+                confetti.push({
+                    x: width / 2,
+                    y: height / 2,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.8) * 12,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    life: 100
+                });
+            }
+        }
+
+        function triggerMassiveConfetti() {
+            showToast("🎉 May all your dreams come true!");
+            for (let i = 0; i < 3; i++) {
+                setTimeout(triggerConfetti, i * 300);
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw ambient stars
+            particles.forEach(p => {
+                p.alpha += p.speed;
+                if (p.alpha > 1 || p.alpha < 0) p.speed = -p.speed;
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(p.alpha)})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Confetti
+            for (let i = confetti.length - 1; i >= 0; i--) {
+                let c = confetti[i];
+                c.x += c.vx;
+                c.y += c.vy;
+                c.vy += 0.2; // gravity
+                c.life -= 1;
+
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rotation * Math.PI / 180);
+                ctx.fillStyle = c.color;
+                ctx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
+                ctx.restore();
+
+                if (c.life <= 0 || c.y > height) {
+                    confetti.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
